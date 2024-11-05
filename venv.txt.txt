@@ -1,0 +1,4 @@
+FIREBASE_CONFIG_KEY=tu_key_aquí
+FIREBASE_AUTH_DOMAIN=tu_domain_aquí
+FIREBASE_DATABASE_URL=tu_url_aquí
+FIREBASE_STORAGE_BUCKET=tu_bucket_aquí

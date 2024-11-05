@@ -2,7 +2,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+*.pyc
+.DS_Store
 # C extensions
 *.so
 
@@ -25,6 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -81,6 +83,7 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+firebase_config.py
 
 # pyenv
 #   For a library or package, you might want to ignore these files since the code is
