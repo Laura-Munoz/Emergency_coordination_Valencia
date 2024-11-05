@@ -10,6 +10,24 @@ class EmergencyDatabase:
     def __init__(self):
         self.db_url = config['databaseURL']
         
+    def initialize_firebase(self):
+        if not firebase_admin._apps:
+            try:
+                credentials_dict = {
+                    "type": "service_account",
+                    "project_id": st.secrets["firebase"]["project_id"],
+                    "private_key": st.secrets["firebase"]["private_key"].replace('\\n', '\n'),
+                    "client_email": st.secrets["firebase"]["client_email"]
+                }
+                cred = credentials.Certificate(credentials_dict)
+                firebase_admin.initialize_app(cred, {
+                    'databaseURL': st.secrets["firebase"]["databaseURL"]
+                })
+                return True
+            except Exception as e:
+                st.error(f"Error initializing Firebase: {e}")
+                return False
+                
     def _make_request(self, method, path, data=None):
         url = f"{self.db_url}/{path}.json"
         try:
