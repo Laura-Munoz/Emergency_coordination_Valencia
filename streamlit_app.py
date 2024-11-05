@@ -4,37 +4,48 @@ from admin_view import admin_page
 from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
+import firebase_admin
+from firebase_admin import credentials, db
 
-# Configuración de Firebase de forma segura
-def get_firebase_config():
-    try:
-        firebase_config = {
-            "apiKey": st.secrets["firebase"]["apiKey"],
-            "authDomain": st.secrets["firebase"]["authDomain"],
-            "databaseURL": st.secrets["firebase"]["databaseURL"],
-            "projectId": st.secrets["firebase"]["projectId"],
-            "storageBucket": st.secrets["firebase"]["storageBucket"],
-            "messagingSenderId": st.secrets["firebase"]["messagingSenderId"],
-            "appId": st.secrets["firebase"]["appId"]
-        }
-        return firebase_config
-    except Exception as e:
-        st.error("Error loading Firebase configuration. Please check your settings.")
-        st.stop()
+# Configuración segura de Firebase
+def initialize_firebase():
+    if not firebase_admin._apps:  # Evita inicialización múltiple
+        try:
+            # Configuración desde secrets
+            firebase_config = {
+                "apiKey": st.secrets["firebase"]["apiKey"],
+                "authDomain": st.secrets["firebase"]["authDomain"],
+                "databaseURL": st.secrets["firebase"]["databaseURL"],
+                "projectId": st.secrets["firebase"]["projectId"],
+                "storageBucket": st.secrets["firebase"]["storageBucket"],
+                "messagingSenderId": st.secrets["firebase"]["messagingSenderId"],
+                "appId": st.secrets["firebase"]["appId"]
+            }
+            
+            # Inicializar Firebase
+            cred = credentials.Certificate({
+                "type": "service_account",
+                "project_id": st.secrets["firebase"]["projectId"],
+                "private_key": st.secrets["firebase"]["private_key"].replace('\\n', '\n'),
+                "client_email": st.secrets["firebase"]["client_email"],
+                "token_uri": "https://oauth2.googleapis.com/token",
+            })
+            
+            firebase_admin.initialize_app(cred, {
+                'databaseURL': st.secrets["firebase"]["databaseURL"]
+            })
+            
+            return True
+        except Exception as e:
+            st.error(f"Error initializing Firebase: {e}")
+            return False
 
-def check_firebase_credentials():
-    required_credentials = [
-        "apiKey", "authDomain", "databaseURL", 
-        "projectId", "storageBucket", "messagingSenderId", "appId"
-    ]
-    
-    for cred in required_credentials:
-        if cred not in st.secrets["firebase"]:
-            st.error(f"Missing Firebase credential: {cred}")
-            st.stop()
-
-# Usa la función al inicio
-check_firebase_credentials()
+# Inicializar Firebase al inicio
+if initialize_firebase():
+    st.success("Firebase connected successfully!")
+else:
+    st.error("Failed to connect to Firebase")
+    st.stop()
 
 # Configuración de la página
 st.set_page_config(
