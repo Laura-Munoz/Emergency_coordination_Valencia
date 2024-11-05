@@ -5,6 +5,37 @@ from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
 
+# Configuración de Firebase de forma segura
+def get_firebase_config():
+    try:
+        firebase_config = {
+            "apiKey": st.secrets["firebase"]["apiKey"],
+            "authDomain": st.secrets["firebase"]["authDomain"],
+            "databaseURL": st.secrets["firebase"]["databaseURL"],
+            "projectId": st.secrets["firebase"]["projectId"],
+            "storageBucket": st.secrets["firebase"]["storageBucket"],
+            "messagingSenderId": st.secrets["firebase"]["messagingSenderId"],
+            "appId": st.secrets["firebase"]["appId"]
+        }
+        return firebase_config
+    except Exception as e:
+        st.error("Error loading Firebase configuration. Please check your settings.")
+        st.stop()
+
+def check_firebase_credentials():
+    required_credentials = [
+        "apiKey", "authDomain", "databaseURL", 
+        "projectId", "storageBucket", "messagingSenderId", "appId"
+    ]
+    
+    for cred in required_credentials:
+        if cred not in st.secrets["firebase"]:
+            st.error(f"Missing Firebase credential: {cred}")
+            st.stop()
+
+# Usa la función al inicio
+check_firebase_credentials()
+
 # Configuración de la página
 st.set_page_config(
     page_title="Sistema de Emergencias Valencia",
