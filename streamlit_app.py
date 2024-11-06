@@ -1,187 +1,25 @@
+# streamlit_app.py
 import streamlit as st
-from datetime import datetime
-from admin_view import admin_page
-from coordinator_view import coordinator_page
-from volunteer_view import volunteer_page
-from database import EmergencyDatabase
-from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
-from device_detection import is_mobile
 
-# Configuración de la página
+# Configuración mínima
 st.set_page_config(
-    page_title="Sistema de Emergencias Valencia",
+    page_title="Emergency Valencia",
     page_icon="🚨",
-    layout="wide" if not is_mobile() else "centered",
-    initial_sidebar_state="collapsed" if is_mobile() else "expanded"
+    layout="centered",  # Cambiamos a centered para reducir complejidad
+    initial_sidebar_state="collapsed"
 )
-
-# Estilos responsivos
-st.markdown("""
-    <style>
-    /* Estilos base */
-    .stButton>button {
-        width: auto;
-        padding: 0.5rem 1rem;
-    }
-    
-    /* Estilos móviles */
-    @media (max-width: 768px) {
-        .stButton>button {
-            width: 100%;
-            margin: 5px 0;
-        }
-        .main .block-container {
-            padding-top: 1rem;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-        .css-1d391kg, .css-12oz5g7 {
-            padding: 0.5rem;
-        }
-        /* Optimizar sidebar en móvil */
-        .css-1v3fvcr {
-            width: 100%;
-        }
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# Optimiza el cacheo
-@st.cache_data(ttl=3600)  # Cache por 1 hora
-def load_initial_data():
-    # Tu código de carga de datos inicial
-    pass
-    
-# Función para verificar credenciales de admin
-def verify_admin(username, password, secret_key):
-    return (username == "admin" and 
-            password == "admin_password" and
-            secret_key == ADMIN_SECRET_KEY)
 
 def main():
     try:
-        # Debug info - Usando st.write correctamente
-        #st.write("DEBUG - Tiempo de inicio:", str(datetime.now()))
+        # Prueba básica de carga
+        st.write("Probando carga inicial...")
         
-        # Inicializar la base de datos
-        db = EmergencyDatabase()
-        st.success("Conectado exitosamente")
-        
-        # Inicializar el estado de la sesión si es necesario
-        if 'authenticated' not in st.session_state:
-            st.session_state.authenticated = False
-            st.session_state.role = None
-
-        # Añadir una clave secreta para acceso admin
-        global ADMIN_SECRET_KEY
-        ADMIN_SECRET_KEY = "admin123"
-
-        # Sidebar para gestión de roles y autenticación
-        with st.sidebar:
-            st.title("🔐 Acceso al Sistema")
+        # Solo mostrar un botón simple
+        if st.button("Click para probar"):
+            st.success("¡Funcionó!")
             
-            if not st.session_state.authenticated:
-                # Botón oculto para acceso admin
-                if st.session_state.get('show_admin', False):
-                    if st.button("← Volver"):
-                        st.session_state.show_admin = False
-                        st.rerun()
-                    
-                    st.write("🔒 Acceso Administrativo")
-                    with st.form("admin_login"):
-                        admin_user = st.text_input("Usuario")
-                        admin_pass = st.text_input("Contraseña", type="password")
-                        admin_key = st.text_input("Clave de Seguridad", type="password")
-                        if st.form_submit_button("Ingresar"):
-                            if verify_admin(admin_user, admin_pass, admin_key):
-                                st.session_state.authenticated = True
-                                st.session_state.role = "Administrador"
-                                st.rerun()
-                            else:
-                                st.error("Credenciales incorrectas")
-                
-                else:
-                    # Selector normal para usuarios regulares
-                    role_selection = st.radio(
-                        "Seleccionar Rol",
-                        ["Voluntario", "Coordinador"]
-                    )
-                    
-                    # Botón oculto para mostrar acceso admin
-                    col1, col2, col3 = st.columns([1,1,1])
-                    with col3:
-                        if st.button("⚙️", key="admin_access"):
-                            st.session_state.show_admin = True
-                            st.rerun()
-                    
-                    if role_selection == "Voluntario":
-                        if st.button("Acceder como Voluntario"):
-                            st.session_state.authenticated = True
-                            st.session_state.role = "Voluntario"
-                            st.rerun()
-                            
-                    elif role_selection == "Coordinador":
-                        st.write("Ingreso como Coordinador")
-                        username = st.text_input("Usuario", key="coord_user")
-                        password = st.text_input("Contraseña", type="password", key="coord_pass")
-                        if st.button("Ingresar", key="coord_submit"):
-                            try:
-                                success, result = db.verify_coordinator(username, password)
-                                if success:
-                                    st.session_state.authenticated = True
-                                    st.session_state.role = role_selection
-                                    st.session_state.user_info = result
-                                    st.rerun()
-                                else:
-                                    st.error(result)
-                            except Exception as e:
-                                st.error(f"Error en la verificación: {str(e)}")
-            
-            else:
-                st.success(f"Rol actual: {st.session_state.role}")
-                if st.button("Cerrar Sesión"):
-                    for key in list(st.session_state.keys()):
-                        del st.session_state[key]
-                    st.rerun()
-
-        # Mostrar la vista correspondiente según el rol
-        if st.session_state.authenticated:
-            if st.session_state.role == "Administrador":
-                admin_page()
-            elif st.session_state.role == "Coordinador":
-                coordinator_page()
-            elif st.session_state.role == "Voluntario":
-                volunteer_page()
-        else:
-            # Página de bienvenida
-            st.title("🚨 Sistema de Emergencias Valencia")
-            st.write("### Bienvenido al Sistema de Coordinación de Emergencias")
-            st.info("""
-                👈 Por favor, selecciona tu rol en el panel izquierdo para comenzar:
-                
-                - 🤝 **Voluntario**: Acceso directo al mapa de zonas
-                - 👥 **Coordinador**: Requiere autenticación
-                - 🔧 **Administrador**: Requiere autenticación
-            """)
-
     except Exception as e:
-        st.error(f"Error en la aplicación: {str(e)}")
-        st.stop()
+        st.error(f"Error: {str(e)}")
 
 if __name__ == "__main__":
     main()
-
-# Pie de página
-st.markdown("""
-    <div style='position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.8); 
-               padding: 5px; text-align: center; border-top: 1px solid #ddd; font-size: 0.8em;'>
-        Developed by Laura M. Muñoz Amaya | 
-        <a href="mailto:lm.munozamay7@gmail.com" style="color: #4A90E2; text-decoration: none;">
-            📧 lm.munozamaya7@gmail.com
-        </a> | © 2024 
-        <br>
-        <small style="color: #666;">
-            Creado como iniciativa voluntaria para la emergencia de Valencia, España
-        </small>
-    </div>
-    """, unsafe_allow_html=True)
