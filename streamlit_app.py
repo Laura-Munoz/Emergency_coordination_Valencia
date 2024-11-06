@@ -16,6 +16,9 @@ st.set_page_config(
 def main():
     try:
         with st.spinner('Cargando aplicación...'):
+            
+            st.write("DEBUG - Tiempo de inicio:", datetime.now())
+            
             # Inicializar la base de datos
             db = EmergencyDatabase()
             st.success("API Initialized successfully!")
