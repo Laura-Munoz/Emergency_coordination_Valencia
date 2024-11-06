@@ -17,11 +17,19 @@ st.set_page_config(
 )
 
 # Inicializar la base de datos
-try:
-    db = EmergencyDatabase()
-except Exception as e:
-    st.error(f"Error connecting to Firebase: {e}")
-    st.stop()
+def main():
+    try:
+        db = EmergencyDatabase()
+         # Para debugging
+        st.success("Firebase initialized successfully!")
+        
+        # Aquí tu lógica de la aplicación
+        if "page" not in st.session_state:
+            st.session_state.page = "login"
+            
+    except Exception as e:
+        st.error(f"Error connecting to Firebase: {e}")
+        st.stop()
 
 # Función para limpiar el estado de la sesión
 def clear_session():
@@ -129,6 +137,13 @@ else:
         - 👥 **Coordinador**: Requiere autenticación
         - 🔧 **Administrador**: Requiere autenticación
     """)
+
+    except Exception as e:
+        st.error(f"Error in main app: {str(e)}")
+        st.stop()
+
+if __name__ == "__main__":
+    main()
 
 # Pie de página
 st.markdown("""
