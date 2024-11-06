@@ -29,7 +29,7 @@ def verify_admin(username, password, secret_key):
 def main():
     try:
         # Debug info - Usando st.write correctamente
-        st.write("DEBUG - Tiempo de inicio:", str(datetime.now()))
+        #st.write("DEBUG - Tiempo de inicio:", str(datetime.now()))
         
         # Inicializar la base de datos
         db = EmergencyDatabase()
