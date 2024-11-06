@@ -75,7 +75,7 @@ def create_map(zones):
             print(f"Error procesando zona: {e}")
     
     return m._repr_html_()
-
+        
 def format_needs(needs):
     """Formatea la lista de necesidades para el popup"""
     if not needs:
@@ -107,12 +107,22 @@ def get_cached_data():
             return []
     
     return st.session_state.data_cache
-
+    
+@st.cache_data(ttl=300)  # Cache por 5 minutos
+def load_map_data():
+    try:
+        db = EmergencyDatabase()
+        return db.get_all_zones()
+    except Exception as e:
+        st.error(f"Error cargando datos: {e}")
+        return []
+        
 def volunteer_page():
     st.title("🤝 Mapa - Emergencias Valencia")
     
     # Sidebar con botón de actualización y tiempo
-    with st.sidebar:
+    with st.sidebar('cargando mapa...'):
+        zones = load_map_data()
         st.write("### Actualización")
         if st.button("🔄 Actualizar datos"):
             st.session_state.data_cache = None
