@@ -4,7 +4,7 @@ from admin_view import admin_page
 from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
-from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
+#from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
 #import firebase_admin
 #from firebase_admin import credentials, db
 
@@ -23,13 +23,10 @@ def main():
          # Para debugging
         st.success("Firebase initialized successfully!")
         
-        # Aquí tu lógica de la aplicación
-        if "page" not in st.session_state:
-            st.session_state.page = "login"
-            
-    except Exception as e:
-        st.error(f"Error connecting to Firebase: {e}")
-        st.stop()
+        # Inicializar el estado de la sesión si es necesario
+        if 'authenticated' not in st.session_state:
+            st.session_state.authenticated = False
+            st.session_state.role = None
 
 # Función para limpiar el estado de la sesión
 def clear_session():
@@ -138,9 +135,9 @@ else:
         - 🔧 **Administrador**: Requiere autenticación
     """)
 
-    except Exception as e:
-        st.error(f"Error in main app: {str(e)}")
-        st.stop()
+except Exception as e:
+st.error(f"Error in main app: {str(e)}")
+st.stop()
 
 if __name__ == "__main__":
     main()
