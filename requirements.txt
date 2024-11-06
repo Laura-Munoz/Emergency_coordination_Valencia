@@ -6,5 +6,4 @@ numpy>=1.24.0
 pandas>=2.0.0
 Pillow>=10.0.0
 requests>=2.31.0
-streamlit-folium>=0.15.0  # Mejor rendimiento para mapas
-streamlit-custom-notification>=0.1.0  # Notificaciones móviles
+
