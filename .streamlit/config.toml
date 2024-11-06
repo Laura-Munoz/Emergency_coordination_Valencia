@@ -1,16 +1,12 @@
 [theme]
 base = "light"
-
 [browser]
 gatherUsageStats = false
-
 [client]
 toolbarMode = "minimal"
 showErrorDetails = false
-
 [server]
 maxUploadSize = 5
 enableCORS = true
-
 [global]
 developmentMode = false
