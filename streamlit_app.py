@@ -15,9 +15,10 @@ st.set_page_config(
 
 def main():
     try:
-        # Inicializar la base de datos
-        db = EmergencyDatabase()
-        st.success("API Initialized successfully!")
+        with st.spinner('Cargando aplicación...'):
+            # Inicializar la base de datos
+            db = EmergencyDatabase()
+            st.success("API Initialized successfully!")
         
         # Inicializar el estado de la sesión si es necesario
         if 'authenticated' not in st.session_state:
