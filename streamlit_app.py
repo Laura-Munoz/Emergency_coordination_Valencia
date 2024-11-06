@@ -118,6 +118,9 @@ def main():
     except Exception as e:
         st.error(f"Error in main app: {str(e)}")
         st.stop()
+        
+# Añadir una clave secreta para acceso admin
+ADMIN_SECRET_KEY = "admin123"  # En producción, esto debería estar en un archivo de configuración seguro
 
 # Función para verificar credenciales de admin
 def verify_admin(username, password, secret_key):
