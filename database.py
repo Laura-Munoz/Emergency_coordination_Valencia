@@ -51,7 +51,7 @@ class EmergencyDatabase:
                 
     def _make_request(self, method, path, data=None):
         url = f"{self.db_url}/{path}.json"
-        st.write(f"DEBUG: Haciendo request a URL: {url}")
+        #st.write(f"DEBUG: Haciendo request a URL: {url}")
         try:
             if method == 'GET':
                 response = requests.get(url)
@@ -60,8 +60,8 @@ class EmergencyDatabase:
             elif method == 'PATCH':
                 response = requests.patch(url, json=data)
                 
-            st.write(f"DEBUG: Status code: {response.status_code}")
-            st.write(f"DEBUG: Respuesta: {response.text}")   
+            #st.write(f"DEBUG: Status code: {response.status_code}")
+            #st.write(f"DEBUG: Respuesta: {response.text}")   
             
             return response.json() if response.status_code == 200 else None
         except Exception as e:
@@ -113,12 +113,12 @@ class EmergencyDatabase:
     def get_all_zones(self):
         """Obtiene todas las zonas de Firebase"""
         try:
-            st.write("DEBUG: Intentando obtener zonas de Firebase...")
+            #st.write("DEBUG: Intentando obtener zonas de Firebase...")
             zones_data = self._make_request('GET', 'zones')
-            st.write(f"DEBUG: Datos obtenidos: {zones_data}")
+            #st.write(f"DEBUG: Datos obtenidos: {zones_data}")
         
             cleaned_data = self.clean_zones_data(zones_data)
-            st.write(f"DEBUG: Datos limpiados: {cleaned_data}")
+            #st.write(f"DEBUG: Datos limpiados: {cleaned_data}")
         
             return cleaned_data
         except Exception as e:
