@@ -12,6 +12,8 @@ class EmergencyDatabase:
     def __init__(self):
         self.initialize_firebase()
         self.db = db.reference('/')
+        self.db_url = st.secrets["firebase"]["databaseURL"]  # Añade esta línea
+        st.write(f"DEBUG: URL de la base de datos: {self.db_url}")
         
     def get_firebase_config(self):
         return {
@@ -49,6 +51,7 @@ class EmergencyDatabase:
                 
     def _make_request(self, method, path, data=None):
         url = f"{self.db_url}/{path}.json"
+        st.write(f"DEBUG: Haciendo request a URL: {url}")
         try:
             if method == 'GET':
                 response = requests.get(url)
@@ -56,6 +59,10 @@ class EmergencyDatabase:
                 response = requests.put(url, json=data)
             elif method == 'PATCH':
                 response = requests.patch(url, json=data)
+                
+            st.write(f"DEBUG: Status code: {response.status_code}")
+            st.write(f"DEBUG: Respuesta: {response.text}")   
+            
             return response.json() if response.status_code == 200 else None
         except Exception as e:
             print(f"Error en la solicitud: {e}")
@@ -106,12 +113,18 @@ class EmergencyDatabase:
     def get_all_zones(self):
         """Obtiene todas las zonas de Firebase"""
         try:
+            st.write("DEBUG: Intentando obtener zonas de Firebase...")
             zones_data = self._make_request('GET', 'zones')
-            return self.clean_zones_data(zones_data)
+            st.write(f"DEBUG: Datos obtenidos: {zones_data}")
+        
+            cleaned_data = self.clean_zones_data(zones_data)
+            st.write(f"DEBUG: Datos limpiados: {cleaned_data}")
+        
+            return cleaned_data
         except Exception as e:
-            print(f"Error obteniendo zonas: {e}")
+            st.error(f"Error obteniendo zonas: {e}")
             return []
-
+        
     def update_zone(self, zone_id, data):
         """Actualiza una zona específica"""
         try:
