@@ -5,14 +5,46 @@ from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
 from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
+from utils.device_detection import is_mobile
 
 # Configuración de la página
 st.set_page_config(
     page_title="Sistema de Emergencias Valencia",
     page_icon="🚨",
-    layout="wide",
-    initial_sidebar_state="collapsed",
+    layout="wide" if not is_mobile() else "centered",
+    initial_sidebar_state="collapsed" if is_mobile() else "expanded"
 )
+
+# Estilos responsivos
+st.markdown("""
+    <style>
+    /* Estilos base */
+    .stButton>button {
+        width: auto;
+        padding: 0.5rem 1rem;
+    }
+    
+    /* Estilos móviles */
+    @media (max-width: 768px) {
+        .stButton>button {
+            width: 100%;
+            margin: 5px 0;
+        }
+        .main .block-container {
+            padding-top: 1rem;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+        .css-1d391kg, .css-12oz5g7 {
+            padding: 0.5rem;
+        }
+        /* Optimizar sidebar en móvil */
+        .css-1v3fvcr {
+            width: 100%;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # Optimiza el cacheo
 @st.cache_data(ttl=3600)  # Cache por 1 hora
