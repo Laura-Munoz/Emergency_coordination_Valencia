@@ -8,8 +8,8 @@ from config import CENTER_LAT, CENTER_LON
 def create_map(zones):
     """Crea el mapa con las zonas marcadas y una leyenda"""
     if not zones:
-        print("No hay zonas para mostrar")
-        return ""
+        st.warning("No hay zonas para mostrar")
+        return None
     
     m = folium.Map(location=[CENTER_LAT, CENTER_LON], zoom_start=12)
     
@@ -47,7 +47,6 @@ def create_map(zones):
                 'optimal': 'orange'
             }.get(zone['status'], 'gray')
             
-            # Popup simplificado para voluntarios
             popup_text = f"""
                 <div style="font-family: Arial, sans-serif; min-width: 200px;">
                     <h4 style="margin: 0; color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 5px;">
@@ -72,68 +71,32 @@ def create_map(zones):
             )
             marker.add_to(m)
         except Exception as e:
-            print(f"Error procesando zona: {e}")
+            st.error(f"Error procesando zona: {str(e)}")
     
     return m._repr_html_()
-        
+
 def format_needs(needs):
     """Formatea la lista de necesidades para el popup"""
     if not needs:
         return "Ninguna registrada"
     return "<br>".join(f"- {need}" for need in needs)
 
+@st.cache_data(ttl=300)
 def get_cached_data():
-    """Obtiene datos con caché agresivo"""
-    current_time = time.time()
-    cache_time = 60  # 1 minuto de caché
-    
-    if 'data_cache' not in st.session_state:
-        st.session_state.data_cache = None
-        st.session_state.last_fetch = 0
-    
-    # Forzar primera carga
-    if st.session_state.data_cache is None or (current_time - st.session_state.last_fetch) > cache_time:
-        try:
-            db = EmergencyDatabase()
-            data = db.get_all_zones()
-            if data:  # Verificar que hay datos
-                st.session_state.data_cache = data
-                st.session_state.last_fetch = current_time
-            else:
-                print("No se obtuvieron datos de la base de datos")
-                return []
-        except Exception as e:
-            print(f"Error obteniendo datos: {e}")
-            return []
-    
-    return st.session_state.data_cache
-    
-@st.cache_data(ttl=300)  # Cache por 5 minutos
-def load_map_data():
+    """Obtiene datos con caché"""
     try:
         db = EmergencyDatabase()
-        return db.get_all_zones()
+        data = db.get_all_zones()
+        if not data:
+            return []
+        return data
     except Exception as e:
-        st.error(f"Error cargando datos: {e}")
+        st.error(f"Error obteniendo datos: {str(e)}")
         return []
-        
+
 def volunteer_page():
+    """Página principal para voluntarios"""
     st.title("🤝 Mapa - Emergencias Valencia")
-    
-    # Sidebar con botón de actualización y tiempo
-    st.sidebar.write("### Actualización")
-    
-    with st.sidebar('cargando mapa...'):
-        zones = load_map_data()
-        
-        if st.button("🔄 Actualizar datos"):
-            st.session_state.data_cache = None
-            st.rerun()
-            
-        # Mostrar tiempo hasta próxima actualización
-        if 'last_fetch' in st.session_state:
-            time_remaining = 60 - (time.time() - st.session_state.last_fetch)
-            st.sidebar.write(f"Próxima actualización en: {int(time_remaining)} segundos")
     
     # Información para voluntarios
     st.info("""
@@ -147,19 +110,28 @@ def volunteer_page():
         ℹ️ Haga clic en los marcadores para ver más detalles de cada zona
     """)
     
+    # Botones en el sidebar
+    st.sidebar.write("### Panel de Control")
+    if st.sidebar.button("🔄 Actualizar Datos"):
+        st.cache_data.clear()
+        st.rerun()
+    
     # Obtener y mostrar datos
-    with st.spinner('Cargando mapa...'):
-        zones_data = get_cached_data()
-        
-        if zones_data:
-            # Crear mapa
-            map_html = create_map(zones_data)
-            # Mostrar mapa usando el componente HTML correcto
-            st.components.v1.html(map_html, height=800)
+    try:
+        with st.spinner("Cargando mapa..."):
+            zones_data = get_cached_data()
             
-            # Contador de zonas que necesitan ayuda
-            needed_zones = [z for z in zones_data if z['status'] == 'needed']
-            if needed_zones:
-                st.warning(f"🚨 Actualmente hay {len(needed_zones)} zonas que necesitan voluntarios")
-        else:
-            st.error("No se pudieron cargar los datos. Por favor, intenta actualizar la página.")
+            if zones_data:
+                map_html = create_map(zones_data)
+                if map_html:
+                    st.components.v1.html(map_html, height=600)
+                    
+                    # Mostrar estadísticas
+                    needed_zones = len([z for z in zones_data if z['status'] == 'needed'])
+                    if needed_zones > 0:
+                        st.warning(f"🚨 Hay {needed_zones} zonas que necesitan voluntarios")
+            else:
+                st.error("No hay datos disponibles para mostrar")
+                
+    except Exception as e:
+        st.error(f"Error cargando el mapa: {str(e)}")
