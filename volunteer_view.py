@@ -121,9 +121,11 @@ def volunteer_page():
     st.title("🤝 Mapa - Emergencias Valencia")
     
     # Sidebar con botón de actualización y tiempo
+    st.sidebar.write("### Actualización")
+    
     with st.sidebar('cargando mapa...'):
         zones = load_map_data()
-        st.write("### Actualización")
+        
         if st.button("🔄 Actualizar datos"):
             st.session_state.data_cache = None
             st.rerun()
@@ -131,7 +133,7 @@ def volunteer_page():
         # Mostrar tiempo hasta próxima actualización
         if 'last_fetch' in st.session_state:
             time_remaining = 60 - (time.time() - st.session_state.last_fetch)
-            st.write(f"Próxima actualización en: {int(time_remaining)} segundos")
+            st.sidebar.write(f"Próxima actualización en: {int(time_remaining)} segundos")
     
     # Información para voluntarios
     st.info("""
