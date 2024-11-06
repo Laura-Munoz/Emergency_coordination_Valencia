@@ -13,7 +13,7 @@ class EmergencyDatabase:
         self.initialize_firebase()
         self.db = db.reference('/')
         self.db_url = st.secrets["firebase"]["databaseURL"]  # Añade esta línea
-        st.write(f"DEBUG: URL de la base de datos: {self.db_url}")
+        #st.write(f"DEBUG: URL de la base de datos: {self.db_url}")
         
     def get_firebase_config(self):
         return {
