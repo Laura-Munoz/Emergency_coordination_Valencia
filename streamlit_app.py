@@ -1,6 +1,11 @@
 import streamlit as st
 import time
+import sys
+import platform
 
+st.write("Python version:", sys.version)
+st.write("Platform:", platform.platform())
+st.write("Streamlit version:", st.__version__)
 # Limpiar cache completamente al inicio
 for key in st.session_state.keys():
     del st.session_state[key]
