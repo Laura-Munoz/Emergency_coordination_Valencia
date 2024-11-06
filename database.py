@@ -1,9 +1,8 @@
 # src/database.py
-# src/database.py
+
 import requests
 import json
 from datetime import datetime
-#from firebase_config import config
 import firebase_admin
 from firebase_admin import credentials, db
 import streamlit as st
@@ -11,25 +10,36 @@ from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
 
 class EmergencyDatabase:
     def __init__(self):
-        self.db_url = config['databaseURL']
+        self.initialize_firebase()
+        self.db = db.reference('/')
+        
+    def get_firebase_config(self):
+        return {
+            "apiKey": st.secrets["firebase"]["apiKey"],
+            "authDomain": st.secrets["firebase"]["authDomain"],
+            "databaseURL": st.secrets["firebase"]["databaseURL"],
+            "projectId": st.secrets["firebase"]["project_id"],
+            "storageBucket": st.secrets["firebase"]["storageBucket"],
+            "messagingSenderId": st.secrets["firebase"]["messagingSenderId"],
+            "appId": st.secrets["firebase"]["appId"]
+        }
         
     def initialize_firebase(self):
         if not firebase_admin._apps:
             try:
-                credentials_dict = {
+                # Credenciales del Service Account
+                cred = credentials.Certificate({
                     "type": "service_account",
                     "project_id": st.secrets["firebase"]["project_id"],
                     "private_key": st.secrets["firebase"]["private_key"].replace('\\n', '\n'),
                     "client_email": st.secrets["firebase"]["client_email"],
-                    "token_uri": "https://oauth2.googleapis.com/token"
-                }
+                    "private_key_id": st.secrets["firebase"]["private_key_id"]
+                })
                 
-                firebase_config = {
+                # Inicializar la app
+                firebase_admin.initialize_app(cred, {
                     'databaseURL': st.secrets["firebase"]["databaseURL"]
-                }
-                
-                cred = credentials.Certificate(credentials_dict)
-                firebase_admin.initialize_app(cred, firebase_config)
+                })
                 return True
             except Exception as e:
                 st.error(f"Error initializing Firebase: {e}")
