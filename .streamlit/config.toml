@@ -1,0 +1,46 @@
+import streamlit as st
+
+# Configuración optimizada para Streamlit Cloud
+st.set_page_config(
+    page_title="Emergency Valencia",
+    page_icon="🚨",
+    layout="centered",  # Cambiar a centered para mejor rendimiento móvil
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
+)
+
+# Optimizaciones para móvil
+st.markdown("""
+    <style>
+    /* Optimizaciones generales */
+    .stApp {
+        max-width: 100%;
+        padding: 1rem;
+    }
+    
+    /* Optimizaciones móviles */
+    @media (max-width: 768px) {
+        .stApp {
+            padding: 0.5rem;
+        }
+        
+        .stButton > button {
+            width: 100%;
+            margin: 0.2rem 0;
+        }
+        
+        .stMarkdown {
+            font-size: 0.9rem;
+        }
+        
+        /* Ajustar sidebar */
+        .css-1d391kg {
+            padding: 1rem 0.5rem;
+        }
+    }
+    </style>
+""", unsafe_allow_html=True)
