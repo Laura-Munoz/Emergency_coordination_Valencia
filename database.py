@@ -113,9 +113,7 @@ class EmergencyDatabase:
     def get_all_zones(self):
         """Obtiene todas las zonas de Firebase"""
         try:
-            #st.write("DEBUG: Intentando obtener zonas de Firebase...")
             zones_data = self._make_request('GET', 'zones')
-            #st.write(f"DEBUG: Datos obtenidos: {zones_data}")
         
             cleaned_data = self.clean_zones_data(zones_data)
             #st.write(f"DEBUG: Datos limpiados: {cleaned_data}")
