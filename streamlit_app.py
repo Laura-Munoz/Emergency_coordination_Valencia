@@ -4,8 +4,8 @@ from admin_view import admin_page
 from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
-import firebase_admin
-from firebase_admin import credentials, db
+#import firebase_admin
+#from firebase_admin import credentials, db
 
 
 # Configuración de la página
@@ -16,7 +16,11 @@ st.set_page_config(
 )
 
 # Inicializar la base de datos
-db = EmergencyDatabase()
+try:
+    db = EmergencyDatabase()
+except Exception as e:
+    st.error(f"Error connecting to Firebase: {e}")
+    st.stop()
 
 # Función para limpiar el estado de la sesión
 def clear_session():
