@@ -4,6 +4,7 @@ from admin_view import admin_page
 from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
+from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
 #import firebase_admin
 #from firebase_admin import credentials, db
 
