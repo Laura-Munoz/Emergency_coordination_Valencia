@@ -5,7 +5,7 @@ from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
 from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
-import datetime
+from datetime import datetime
 
 # Configuración de la página
 st.set_page_config(
