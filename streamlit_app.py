@@ -13,6 +13,19 @@ st.set_page_config(
     layout="wide"
 )
 
+# Configura la página para mejor rendimiento móvil
+st.set_page_config(
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items=None
+)
+
+# Optimiza el cacheo
+@st.cache_data(ttl=3600)  # Cache por 1 hora
+def load_initial_data():
+    # Tu código de carga de datos inicial
+    pass
+    
 # Función para verificar credenciales de admin
 def verify_admin(username, password, secret_key):
     return (username == "admin" and 
