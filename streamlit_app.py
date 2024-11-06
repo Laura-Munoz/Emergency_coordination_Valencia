@@ -10,14 +10,9 @@ from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
 st.set_page_config(
     page_title="Sistema de Emergencias Valencia",
     page_icon="🚨",
-    layout="wide"
-)
-
-# Configura la página para mejor rendimiento móvil
-st.set_page_config(
+    layout="wide",
     layout="wide",
     initial_sidebar_state="collapsed",
-    menu_items=None
 )
 
 # Optimiza el cacheo
