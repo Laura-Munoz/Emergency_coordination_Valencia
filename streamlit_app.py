@@ -1,11 +1,10 @@
-# src/app.py
 import streamlit as st
+from datetime import datetime
 from admin_view import admin_page
 from coordinator_view import coordinator_page
 from volunteer_view import volunteer_page
 from database import EmergencyDatabase
 from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES
-from datetime import datetime
 
 # Configuración de la página
 st.set_page_config(
@@ -14,15 +13,20 @@ st.set_page_config(
     layout="wide"
 )
 
+# Función para verificar credenciales de admin
+def verify_admin(username, password, secret_key):
+    return (username == "admin" and 
+            password == "admin_password" and
+            secret_key == ADMIN_SECRET_KEY)
+
 def main():
     try:
-        with st.spinner('Cargando aplicación...'):
-            
-            st.write("DEBUG - Tiempo de inicio:", datetime.now())
-            
-            # Inicializar la base de datos
-            db = EmergencyDatabase()
-            st.success("API Initialized successfully!")
+        # Debug info - Usando st.write correctamente
+        st.write("DEBUG - Tiempo de inicio:", str(datetime.now()))
+        
+        # Inicializar la base de datos
+        db = EmergencyDatabase()
+        st.success("Conectado exitosamente")
         
         # Inicializar el estado de la sesión si es necesario
         if 'authenticated' not in st.session_state:
@@ -30,7 +34,8 @@ def main():
             st.session_state.role = None
 
         # Añadir una clave secreta para acceso admin
-        ADMIN_SECRET_KEY = "admin123"  # En producción, esto debería estar en un archivo de configuración seguro
+        global ADMIN_SECRET_KEY
+        ADMIN_SECRET_KEY = "admin123"
 
         # Sidebar para gestión de roles y autenticación
         with st.sidebar:
@@ -121,17 +126,8 @@ def main():
             """)
 
     except Exception as e:
-        st.error(f"Error in main app: {str(e)}")
+        st.error(f"Error en la aplicación: {str(e)}")
         st.stop()
-        
-# Añadir una clave secreta para acceso admin
-ADMIN_SECRET_KEY = "admin123"  # En producción, esto debería estar en un archivo de configuración seguro
-
-# Función para verificar credenciales de admin
-def verify_admin(username, password, secret_key):
-    return (username == "admin" and 
-            password == "admin_password" and  # En producción, usar contraseñas seguras
-            secret_key == ADMIN_SECRET_KEY)
 
 if __name__ == "__main__":
     main()
@@ -140,7 +136,7 @@ if __name__ == "__main__":
 st.markdown("""
     <div style='position: fixed; bottom: 0; left: 0; width: 100%; background-color: rgba(0, 0, 0, 0.8); 
                padding: 5px; text-align: center; border-top: 1px solid #ddd; font-size: 0.8em;'>
-        Develpped by Laura M. Muñoz Amaya | 
+        Developed by Laura M. Muñoz Amaya | 
         <a href="mailto:lm.munozamay7@gmail.com" style="color: #4A90E2; text-decoration: none;">
             📧 lm.munozamaya7@gmail.com
         </a> | © 2024 
