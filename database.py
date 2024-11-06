@@ -3,7 +3,10 @@
 import requests
 import json
 from datetime import datetime
-from firebase_config import config
+#from firebase_config import config
+import firebase_admin
+from firebase_admin import credentials, db
+import streamlit as st
 from config import CENTER_LAT, CENTER_LON, INITIAL_ZONES 
 
 class EmergencyDatabase:
@@ -17,12 +20,16 @@ class EmergencyDatabase:
                     "type": "service_account",
                     "project_id": st.secrets["firebase"]["project_id"],
                     "private_key": st.secrets["firebase"]["private_key"].replace('\\n', '\n'),
-                    "client_email": st.secrets["firebase"]["client_email"]
+                    "client_email": st.secrets["firebase"]["client_email"],
+                    "token_uri": "https://oauth2.googleapis.com/token"
                 }
-                cred = credentials.Certificate(credentials_dict)
-                firebase_admin.initialize_app(cred, {
+                
+                firebase_config = {
                     'databaseURL': st.secrets["firebase"]["databaseURL"]
-                })
+                }
+                
+                cred = credentials.Certificate(credentials_dict)
+                firebase_admin.initialize_app(cred, firebase_config)
                 return True
             except Exception as e:
                 st.error(f"Error initializing Firebase: {e}")
