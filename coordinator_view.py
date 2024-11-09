@@ -100,28 +100,33 @@ def coordinator_page():
         st.components.v1.html(map_html, height=400)  # Altura reducida para móvil
         
         st.subheader("Panel de Control")
+        render_control_panel(st.session_state.zones_data, db, is_mobile)
     else:
-        # Vista desktop: columnas lado a lado
-        col1, col2 = st.columns([5, 5])
+        # Vista desktop: usar dos columnas lado a lado sin espacio extra
+        left_col, right_col = st.columns([4, 6])
         
-        with col1:
+        with left_col:
             st.subheader("Mapa de Zonas")
-            map_html = create_map(st.session_state.zones_data)
-            st.components.v1.html(map_html, height=800)
+            map_container = st.container()
+            with map_container:
+                map_html = create_map(st.session_state.zones_data)
+                # Ajustar la altura del mapa para que ocupe todo el alto disponible
+                st.components.v1.html(map_html, height=800)
         
-        col2_container = col2.container()
-        with col2_container:
+        with right_col:
             st.subheader("Panel de Control")
+            render_control_panel(st.session_state.zones_data, db, is_mobile)
 
-    # Panel de control (común para ambas vistas)
-    if st.session_state.zones_data:
+def render_control_panel(zones_data, db, is_mobile):
+    """Renderiza el panel de control"""
+    if zones_data:
         selected_zone = st.selectbox(
             "Seleccionar Zona",
-            options=[zone['name'] for zone in st.session_state.zones_data]
+            options=[zone['name'] for zone in zones_data]
         )
         
         current_zone = next(
-            (zone for zone in st.session_state.zones_data if zone['name'] == selected_zone),
+            (zone for zone in zones_data if zone['name'] == selected_zone),
             None
         )
         
