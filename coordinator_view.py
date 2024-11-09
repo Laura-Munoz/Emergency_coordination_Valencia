@@ -22,39 +22,12 @@ COMMON_NEEDS = [
 ]
 
 def create_map(zones):
-    """Crea el mapa con las zonas marcadas y una leyenda"""
+    """Crea el mapa con las zonas marcadas"""
     if not zones:
         print("No hay zonas para mostrar")
         return ""
     
     m = folium.Map(location=[CENTER_LAT, CENTER_LON], zoom_start=12)
-    
-    # Agregar leyenda con posición ajustada
-    legend_html = '''
-        <div style="position: fixed; 
-                    bottom: 50px; left: 50px; width: 150px;
-                    border: 2px solid grey; z-index: 1000;
-                    background-color: white;
-                    padding: 10px;
-                    font-family: Arial;
-                    font-size: 14px;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-            <p style="margin: 0; font-weight: bold;">Estado de Zona</p>
-            <p style="margin: 5px 0;">
-                <i style="background: #008000; border-radius: 50%; display: inline-block; height: 10px; width: 10px;"></i>
-                Requiere apoyo
-            </p>
-            <p style="margin: 5px 0;">
-                <i style="background: #FFA500; border-radius: 50%; display: inline-block; height: 10px; width: 10px;"></i>
-                Apoyo óptimo
-            </p>
-            <p style="margin: 5px 0;">
-                <i style="background: #FF0000; border-radius: 50%; display: inline-block; height: 10px; width: 10px;"></i>
-                Exceso apoyo
-            </p>
-        </div>
-    '''
-    m.get_root().html.add_child(folium.Element(legend_html))
     
     for zone in zones:
         try:
@@ -69,7 +42,7 @@ def create_map(zones):
             }.get(zone['status'], 'gray')
             
             popup_text = f"""
-                <div style="font-family: Arial, sans-serif; min-width: 250px;">
+                <div style="font-family: Arial, sans-serif; min-width: 200px; max-width: 300px;">
                     <h4 style="margin: 0; color: #2C3E50; border-bottom: 2px solid #3498DB; padding-bottom: 5px;">
                         {zone['name']}
                     </h4>
@@ -106,7 +79,6 @@ def format_needs(needs):
     return "<br>".join(f"- {need}" for need in needs)
 
 def coordinator_page():
-    st.set_page_config(layout="wide")  # Usar diseño ancho
     st.title("🚨 Coordinador de Emergencias Valencia")
     
     # Inicializar base de datos
@@ -115,111 +87,143 @@ def coordinator_page():
     # Obtener datos actuales
     if 'zones_data' not in st.session_state:
         st.session_state.zones_data = db.get_all_zones()
-    
-    # Crear columnas con proporción ajustada (40-60)
-    col1, col2 = st.columns([4, 6])
-    
-    # Columna del Mapa
-    with col1:
+
+    # En dispositivos móviles, el layout será vertical
+    # En desktop, será horizontal con proporción 40-60
+    screen_width = st.session_state.get('browser_width', 1000)
+    is_mobile = screen_width < 768
+
+    if is_mobile:
+        # Vista móvil: elementos apilados verticalmente
         st.subheader("Mapa de Zonas")
         map_html = create_map(st.session_state.zones_data)
-        # Ajustar altura del mapa para mantener proporciones
-        st.components.v1.html(map_html, height=700)
-    
-    # Panel de Control con más espacio
-    with col2:
-        st.subheader("Panel de Control")
+        st.components.v1.html(map_html, height=400)  # Altura reducida para móvil
         
-        # Agregar contenedor con scroll
-        with st.container():
-            # Selector de zona
-            if st.session_state.zones_data:
-                selected_zone = st.selectbox(
-                    "Seleccionar Zona",
-                    options=[zone['name'] for zone in st.session_state.zones_data]
-                )
+        st.subheader("Panel de Control")
+    else:
+        # Vista desktop: columnas lado a lado
+        col1, col2 = st.columns([4, 6])
+        
+        with col1:
+            st.subheader("Mapa de Zonas")
+            map_html = create_map(st.session_state.zones_data)
+            st.components.v1.html(map_html, height=700)
+        
+        col2_container = col2.container()
+        with col2_container:
+            st.subheader("Panel de Control")
+
+    # Panel de control (común para ambas vistas)
+    if st.session_state.zones_data:
+        selected_zone = st.selectbox(
+            "Seleccionar Zona",
+            options=[zone['name'] for zone in st.session_state.zones_data]
+        )
+        
+        current_zone = next(
+            (zone for zone in st.session_state.zones_data if zone['name'] == selected_zone),
+            None
+        )
+        
+        if current_zone:
+            with st.form("update_form"):
+                st.write("### Actualizar Estado")
                 
-                # Encontrar zona seleccionada
-                current_zone = next(
-                    (zone for zone in st.session_state.zones_data if zone['name'] == selected_zone),
-                    None
-                )
+                # En móvil, los campos van uno debajo del otro
+                if is_mobile:
+                    new_count = st.number_input(
+                        "Número de Voluntarios",
+                        min_value=0,
+                        value=current_zone['volunteer_count']
+                    )
+                    
+                    new_notes = st.text_area(
+                        "Notas de Acceso",
+                        value=current_zone['access_notes'],
+                        height=100
+                    )
+                    
+                    st.write("### Necesidades")
+                    st.write("**Por cubrir:**")
+                    pending_needs = current_zone.get('pending_needs', [])
+                    new_pending_needs = st.multiselect(
+                        "Seleccionar necesidades pendientes",
+                        options=COMMON_NEEDS,
+                        default=pending_needs if pending_needs else [],
+                        key="pending_needs"
+                    )
+                    
+                    st.write("**Cubiertas:**")
+                    covered_needs = current_zone.get('covered_needs', [])
+                    new_covered_needs = st.multiselect(
+                        "Seleccionar necesidades cubiertas",
+                        options=COMMON_NEEDS,
+                        default=covered_needs if covered_needs else [],
+                        key="covered_needs"
+                    )
+                else:
+                    # Vista desktop: usar columnas para mejor organización
+                    basic_col1, basic_col2 = st.columns(2)
+                    with basic_col1:
+                        new_count = st.number_input(
+                            "Número de Voluntarios",
+                            min_value=0,
+                            value=current_zone['volunteer_count']
+                        )
+                    
+                    with basic_col2:
+                        new_notes = st.text_area(
+                            "Notas de Acceso",
+                            value=current_zone['access_notes'],
+                            height=100
+                        )
+                    
+                    st.write("### Necesidades")
+                    needs_col1, needs_col2 = st.columns(2)
+                    
+                    with needs_col1:
+                        st.write("**Por cubrir:**")
+                        pending_needs = current_zone.get('pending_needs', [])
+                        new_pending_needs = st.multiselect(
+                            "Seleccionar necesidades pendientes",
+                            options=COMMON_NEEDS,
+                            default=pending_needs if pending_needs else [],
+                            key="pending_needs"
+                        )
+                    
+                    with needs_col2:
+                        st.write("**Cubiertas:**")
+                        covered_needs = current_zone.get('covered_needs', [])
+                        new_covered_needs = st.multiselect(
+                            "Seleccionar necesidades cubiertas",
+                            options=COMMON_NEEDS,
+                            default=covered_needs if covered_needs else [],
+                            key="covered_needs"
+                        )
                 
-                if current_zone:
-                    with st.form("update_form"):
-                        st.write("### Actualizar Estado")
+                # Botón de actualizar centrado
+                submit_col1, submit_col2, submit_col3 = st.columns([1, 2, 1])
+                with submit_col2:
+                    if st.form_submit_button("Actualizar", use_container_width=True):
+                        if new_count > 150:
+                            new_status = 'overflow'
+                        elif new_count < 50:
+                            new_status = 'needed'
+                        else:
+                            new_status = 'optimal'
                         
-                        # Crear dos columnas para los inputs básicos
-                        basic_col1, basic_col2 = st.columns(2)
+                        update_data = {
+                            'name': current_zone['name'],
+                            'latitude': current_zone['latitude'],
+                            'longitude': current_zone['longitude'],
+                            'volunteer_count': new_count,
+                            'status': new_status,
+                            'access_notes': new_notes,
+                            'pending_needs': new_pending_needs,
+                            'covered_needs': new_covered_needs
+                        }
                         
-                        with basic_col1:
-                            new_count = st.number_input(
-                                "Número de Voluntarios",
-                                min_value=0,
-                                value=current_zone['volunteer_count']
-                            )
-                        
-                        with basic_col2:
-                            new_notes = st.text_area(
-                                "Notas de Acceso",
-                                value=current_zone['access_notes'],
-                                height=100
-                            )
-                        
-                        # Sección de necesidades con más espacio
-                        st.write("### Necesidades")
-                        needs_col1, needs_col2 = st.columns(2)
-                        
-                        with needs_col1:
-                            st.write("**Por cubrir:**")
-                            pending_needs = current_zone.get('pending_needs', [])
-                            if pending_needs is None:
-                                pending_needs = []
-                            new_pending_needs = st.multiselect(
-                                "Seleccionar necesidades pendientes",
-                                options=COMMON_NEEDS,
-                                default=pending_needs,
-                                key="pending_needs"
-                            )
-                        
-                        with needs_col2:
-                            st.write("**Cubiertas:**")
-                            covered_needs = current_zone.get('covered_needs', [])
-                            if covered_needs is None:
-                                covered_needs = []
-                            new_covered_needs = st.multiselect(
-                                "Seleccionar necesidades cubiertas",
-                                options=COMMON_NEEDS,
-                                default=covered_needs,
-                                key="covered_needs"
-                            )
-                        
-                        # Centrar el botón de actualizar
-                        col1, col2, col3 = st.columns([1, 2, 1])
-                        with col2:
-                            if st.form_submit_button("Actualizar", use_container_width=True):
-                                # Calcular nuevo estado
-                                if new_count > 150:
-                                    new_status = 'overflow'
-                                elif new_count < 50:
-                                    new_status = 'needed'
-                                else:
-                                    new_status = 'optimal'
-                                
-                                # Preparar datos
-                                update_data = {
-                                    'name': current_zone['name'],
-                                    'latitude': current_zone['latitude'],
-                                    'longitude': current_zone['longitude'],
-                                    'volunteer_count': new_count,
-                                    'status': new_status,
-                                    'access_notes': new_notes,
-                                    'pending_needs': new_pending_needs,
-                                    'covered_needs': new_covered_needs
-                                }
-                                
-                                # Actualizar
-                                if db.update_zone(current_zone['id'], update_data):
-                                    st.session_state.zones_data = db.get_all_zones()
-                                    st.success(f"Zona {selected_zone} actualizada!")
-                                    st.rerun()
+                        if db.update_zone(current_zone['id'], update_data):
+                            st.session_state.zones_data = db.get_all_zones()
+                            st.success(f"Zona {selected_zone} actualizada!")
+                            st.rerun()
