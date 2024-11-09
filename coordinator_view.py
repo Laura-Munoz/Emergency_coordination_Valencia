@@ -102,12 +102,12 @@ def coordinator_page():
         st.subheader("Panel de Control")
     else:
         # Vista desktop: columnas lado a lado
-        col1, col2 = st.columns([4, 6])
+        col1, col2 = st.columns([5, 5])
         
         with col1:
             st.subheader("Mapa de Zonas")
             map_html = create_map(st.session_state.zones_data)
-            st.components.v1.html(map_html, height=700)
+            st.components.v1.html(map_html, height=800)
         
         col2_container = col2.container()
         with col2_container:
