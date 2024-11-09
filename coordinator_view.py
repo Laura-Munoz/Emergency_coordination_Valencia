@@ -115,7 +115,7 @@ def coordinator_page():
         st.session_state.zones_data = db.get_all_zones()
     
     # Crear columnas
-    col1, col2 = st.columns([3, 1])
+    col1, col2 = st.columns([4, 6])
     
     # Columna del Mapa
     with col1:
