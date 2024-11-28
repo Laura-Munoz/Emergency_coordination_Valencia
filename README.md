@@ -1,5 +1,5 @@
-# Emergency_coordination_Valencia
-Sistema de coordinación de voluntarios para emergencia LA DANA en Valencia
+# Emergency_coordination
+Sistema de coordinación de voluntarios para emergencias
 
 streamlit
 folium
